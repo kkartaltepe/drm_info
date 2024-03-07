@@ -171,11 +171,11 @@ void print_egl(struct json_object *obj) {
 
     struct json_object *formats_arr =
         json_object_object_get(device_obj, "formats");
-    for (size_t i = 0; i < json_object_array_length(formats_arr); i++) {
+    for (size_t i = 0; formats_arr && i < json_object_array_length(formats_arr); i++) {
       struct json_object *format_obj =
           json_object_array_get_idx(formats_arr, i);
-      printf("format: %s\n",
-             format_str(get_object_object_uint64(format_obj, "format")));
+      EGLuint64KHR format = get_object_object_uint64(format_obj, "format");
+      printf("format: %s (0x%lx)\n", format_str(format), format);
       struct json_object *modifiers_arr =
           json_object_object_get(format_obj, "modifiers");
       for (size_t j = 0; j < json_object_array_length(modifiers_arr); j++) {
