@@ -118,6 +118,7 @@ struct json_object *egl_dev_info(EGLDeviceEXT dev) {
   if (eglQueryDmaBufFormatsEXT(display, num_formats, formats, &num_formats) !=
       EGL_TRUE) {
     // No dmabufs supported.
+    eglTerminate(display);
     return obj;
   }
   struct json_object *formats_arr = json_object_new_array();
@@ -140,6 +141,7 @@ struct json_object *egl_dev_info(EGLDeviceEXT dev) {
   }
 
   json_object_object_add(obj, "formats", formats_arr);
+  eglTerminate(display);
   return obj;
 }
 
@@ -171,7 +173,8 @@ void print_egl(struct json_object *obj) {
 
     struct json_object *formats_arr =
         json_object_object_get(device_obj, "formats");
-    for (size_t i = 0; formats_arr && i < json_object_array_length(formats_arr); i++) {
+    for (size_t i = 0; formats_arr && i < json_object_array_length(formats_arr);
+         i++) {
       struct json_object *format_obj =
           json_object_array_get_idx(formats_arr, i);
       EGLuint64KHR format = get_object_object_uint64(format_obj, "format");
