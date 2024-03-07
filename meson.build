@@ -12,6 +12,8 @@ cc = meson.get_compiler('c')
 
 add_project_arguments('-D_POSIX_C_SOURCE=200809L', language: 'c')
 
+egl = dependency('egl')
+gl = dependency('gl')
 jsonc = dependency('json-c', version: '>=0.14', fallback: ['json-c', 'json_c_dep'])
 libpci = dependency('libpci', required: get_option('libpci'))
 libdrm = dependency('libdrm',
@@ -72,6 +74,10 @@ else
   fourcc_h = libdrm.get_pkgconfig_variable('pc_sysrootdir') + libdrm.get_pkgconfig_variable('includedir') / 'libdrm/drm_fourcc.h'
 endif
 
+if egl.found()
+  add_project_arguments('-DHAVE_EGL', language: 'c')
+endif
+
 if libpci.found()
   add_project_arguments('-DHAVE_LIBPCI', language: 'c')
 endif
@@ -87,8 +93,8 @@ tables_c = custom_target('tables_c',
   command : [python3, files('fourcc.py'), fourcc_h, '@OUTPUT@'])
 
 executable('drm_info',
-  ['main.c', 'modifiers.c', 'json.c', 'pretty.c', tables_c],
-  dependencies: [libdrm, libpci, jsonc],
+  ['main.c', 'modifiers.c', 'json.c', 'pretty.c', tables_c, 'egl.c'],
+  dependencies: [libdrm, libpci, jsonc, egl, gl],
   install: true,
 )
 

@@ -3,8 +3,10 @@
 
 struct json_object;
 
+struct json_object *egl_info(char *paths[]);
 struct json_object *drm_info(char *paths[]);
 void print_drm(struct json_object *obj);
+void print_egl(struct json_object *obj);
 
 /* according to CTA 861.G */
 enum {
