@@ -57,16 +57,15 @@ struct json_object *egl_info(char *paths[]) {
     if (!paths[0]) {
       // Collect from all devices.
       struct json_object *dev = egl_dev_info(devices[i]);
-      json_object_object_add(obj, device_paths[i], dev);
+      if (dev)
+        json_object_object_add(obj, device_paths[i], dev);
     } else {
       // Check if it was passed in.
       for (char **path = paths; *path; ++path) {
         if (!strcmp(*path, device_paths[i])) {
           struct json_object *dev = egl_dev_info(devices[i]);
-          if (!dev)
-            continue;
-
-          json_object_object_add(obj, *path, dev);
+          if (dev)
+            json_object_object_add(obj, *path, dev);
         }
       }
     }
@@ -85,7 +84,9 @@ struct json_object *egl_dev_info(EGLDeviceEXT dev) {
   EGLDisplay display =
       eglGetPlatformDisplay(EGL_PLATFORM_DEVICE_EXT, dev, NULL);
   assert(display);
-  assert(eglInitialize(display, &egl_major, &egl_minor) == EGL_TRUE);
+  if (eglInitialize(display, &egl_major, &egl_minor) != EGL_TRUE) {
+    return NULL;
+  }
   assert(egl_major == 1);
   assert(egl_minor >= 5);
   EGLConfig configs[256];
@@ -117,9 +118,7 @@ struct json_object *egl_dev_info(EGLDeviceEXT dev) {
   EGLint num_formats = 256;
   if (eglQueryDmaBufFormatsEXT(display, num_formats, formats, &num_formats) !=
       EGL_TRUE) {
-    // No dmabufs supported.
-    eglTerminate(display);
-    return obj;
+    return NULL;
   }
   struct json_object *formats_arr = json_object_new_array();
 
@@ -141,7 +140,6 @@ struct json_object *egl_dev_info(EGLDeviceEXT dev) {
   }
 
   json_object_object_add(obj, "formats", formats_arr);
-  eglTerminate(display);
   return obj;
 }
 
